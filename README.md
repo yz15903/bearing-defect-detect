@@ -2,10 +2,12 @@
 
 一个能在 Windows 上直接双击运行的桌面缺陷检测程序：读摄像头 / 手机视频流 / 图片文件夹，用 YOLOv8 检测工件表面缺陷，按业务阈值给出 OK / NG，并把每帧结果写进 SQLite、把不良图存盘。
 
-- 数据：工业金属表面缺陷公开数据集 APDDD（ModelScope 可下载，1885 张、10 类缺陷）
-- 模型：YOLOv8s（同数据同超参下与 YOLOv8n 对比后选用）
+- 数据：金属表面缺陷公开数据集 APDDD（ModelScope 可下载，1885 张、10 类缺陷）
+- 模型：YOLOv8s（同条件：同数据、同超参、50 epoch，与 YOLOv8n 对比后选用）
 - 环境：Windows + Python 3.11 + PyTorch 2.5.1(cu121) + Ultralytics 8.4.203 + PySide6 6.12
 - 说明：本仓库是**公开数据集上的流程验证**，不是产线交付系统；相机分支未在真机上验证。
+
+> 仓库只保留程序、训练/评估/验证脚本、结果与截图；`datasets/`、`runs/`、`weights/` 为本地生成，不随仓库提交。权重（`best.pt`=s、`best_v8n.pt`=n）见 Releases（链接待填）。
 
 ## 结果速览
 
@@ -27,15 +29,14 @@
 | 路径 | 是什么 |
 |---|---|
 | `app/` | 正式程序：`main.py` 入口，`ui_main.py` 界面，`detector.py` 推理，`judge.py` 判定，`camera.py` 取流，`db.py` 落盘，`config.py` 配置 |
-| `weights/best.pt` | 当前默认权重，YOLOv8s，21.5 MB |
-| `weights/best_v8n.pt` | YOLOv8n 备份权重，6.2 MB（对比实验用） |
-| `runs/detect/apdd_n`、`apdd_s` | 两次训练的全部产物：`results.csv`、曲线图、混淆矩阵、`args.yaml`、`metrics_summary.json` |
-| `runs/compare/` | n 与 s 的对比图 `compare.png` 与说明 `compare.md` |
-| `runs/ui_capture/` | 界面运行截图、不良帧存图 `NG_*.jpg` |
-| `datasets/apdd/` | 转换后的 YOLO 数据集（images/labels × train/val/test）+ `data.yaml` |
-| `验证_*.py` | 人工验证脚本，逐个跑、逐个看输出（见第 6 节） |
-| `_*.py` | 一次性脚本：数据集转换、训练、评估、拼图等，保留是为了能复现，不是程序的一部分 |
-| `启动检测系统.bat` | 双击启动界面的入口 |
+| `run_app.bat` | Windows 启动脚本（先在 Anaconda Prompt 里 `conda activate bearing`） |
+| `docs/` | 截图、指标 JSON、`results.csv`、`badcase.csv`（面试官会看的部分） |
+| `samples/` | 4 张示例图，不下载完整数据集也能跑演示 |
+| `weights/` | 本地权重（`best.pt`=s、`best_v8n.pt`=n），不提交；见 Releases |
+| `runs/detect/apdd_n`、`apdd_s` | 本地训练产物（`results.csv`、曲线、`metrics_summary.json`），不提交 |
+| `datasets/apdd/` | 本地数据集（images/labels + `data.yaml`），不提交 |
+| `验证_*.py` | 8 个自查脚本：权重、指标、判定、耗时、badcase、ONNX、安全、冒烟 |
+| `_*.py` | 数据转换、两次训练、评估、n-s 对比脚本（复现用） |
 
 ## 2. 装环境（新电脑从零开始）
 
@@ -61,18 +62,15 @@ python check_env.py
 
 ## 3. 跑起来
 
-```bat
-启动检测系统.bat
-```
-
-或在命令行：
+先在 **Anaconda Prompt** 里激活环境，再双击 `run_app.bat`；或命令行：
 
 ```bat
+conda activate bearing
 python app\main.py
 ```
 
 界面用法：
-1. 「图像源」选 `图片文件夹`（无摄像头时最稳），点「选择文件夹」选 `datasets\apdd\images\test`；
+1. 「图像源」选 `图片文件夹`（无摄像头时最稳），点「选择文件夹」选 `datasets\apdd\images\test`；**没有完整数据集时，选仓库里的 `samples` 也能跑**；
 2. 点「开始检测」，右侧出现 NG/OK、耗时、面积比、缺陷数；
 3. 点「保存当前图」存下当前标注图；
 4. 下方「最近记录」是 SQLite 里真实写入的记录。

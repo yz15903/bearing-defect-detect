@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
-ROOT = Path(r'C:\Users\DELL\Downloads\bearing_detect')
+ROOT = Path(__file__).resolve().parent
 
 if __name__ == '__main__':
     model = YOLO(str(ROOT / 'yolov8n.pt'))

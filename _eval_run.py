@@ -8,7 +8,7 @@ from pathlib import Path
 import cv2
 from ultralytics import YOLO
 
-ROOT = Path(r'C:\Users\DELL\Downloads\bearing_detect')
+ROOT = Path(__file__).resolve().parent
 
 
 def main(name):

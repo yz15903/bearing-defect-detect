@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 
-ROOT = Path(r'C:\Users\DELL\Downloads\bearing_detect')
+ROOT = Path(__file__).resolve().parent
 RUNS = {'n': ROOT / 'runs' / 'detect' / 'apdd_n', 's': ROOT / 'runs' / 'detect' / 'apdd_s'}
 OUT = ROOT / 'runs' / 'compare'
 OUT.mkdir(parents=True, exist_ok=True)

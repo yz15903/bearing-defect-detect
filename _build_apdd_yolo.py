@@ -7,8 +7,9 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 
-RAW = Path(r'C:\Users\DELL\Downloads\bearing_detect\datasets\apdd_raw')
-DST = Path(r'C:\Users\DELL\Downloads\bearing_detect\datasets\apdd')
+ROOT = Path(__file__).resolve().parent
+RAW = ROOT / 'datasets' / 'apdd_raw'
+DST = ROOT / 'datasets' / 'apdd'
 ANN = RAW / 'APSPC-Annotations' / 'Annotations'
 
 CLASSES = ['budaodian', 'tufen', 'loudi', 'qikeng', 'pengshang',
