@@ -7,7 +7,7 @@
 - 环境：Windows + Python 3.11 + PyTorch 2.5.1(cu121) + Ultralytics 8.4.203 + PySide6 6.12
 - 说明：本仓库是**公开数据集上的流程验证**，不是产线交付系统；相机分支未在真机上验证。
 
-> 仓库只保留程序、训练/评估/验证脚本、结果与截图；`datasets/`、`runs/`、`weights/` 为本地生成，不随仓库提交。权重（`best.pt`=s、`best_v8n.pt`=n）见 Releases（链接待填）。
+> 仓库只保留程序、训练/评估/验证脚本、结果与截图；`datasets/`、`runs/`、`weights/` 为本地生成，不随仓库提交。权重（`best.pt`=s、`best_v8n.pt`=n）见 Releases（sha256:656ce0b49aaab282d49e2b247415a906673c57e443cce8a798484213d4aae461）。
 
 ## 结果速览
 
