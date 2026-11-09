@@ -1,0 +1,32 @@
+{
+  "val": {
+    "mAP50": 0.5543777463159756,
+    "mAP50_95": 0.33621864337784385,
+    "precision": 0.6142475476577551,
+    "recall": 0.5243840797311519,
+    "per_class_mAP50": {},
+    "speed": {
+      "preprocess": 0.818,
+      "inference": 3.391,
+      "loss": 0.001,
+      "postprocess": 0.657
+    }
+  },
+  "test": {
+    "mAP50": 0.5159046017297688,
+    "mAP50_95": 0.2800652596336954,
+    "precision": 0.6694790429953619,
+    "recall": 0.48009322912955543,
+    "per_class_mAP50": {},
+    "speed": {
+      "preprocess": 0.752,
+      "inference": 3.566,
+      "loss": 0.0,
+      "postprocess": 0.658
+    }
+  },
+  "single_image_ms": {
+    "mean": 7.74,
+    "median": 7.51
+  }
+}

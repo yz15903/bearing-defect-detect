@@ -1,0 +1,28 @@
+# 数据与权重（体积大，不进仓库）
+datasets/
+runs/
+weights/
+db_backup/
+*.pt
+*.onnx
+runs_backup_*/
+
+# 个人/内部文件
+internal/
+review_pack/
+easy/
+evidence/
+简历_*.docx
+简历_*.md
+面试准备.md
+演示脚本_60秒.md
+自采数据_两周计划.md
+发布到GitHub.md
+投递记录.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.dsh-office-*/

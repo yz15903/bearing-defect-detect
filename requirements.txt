@@ -1,0 +1,19 @@
+# 运行环境固定版本（Python 3.11.18 实测，全部为 pip list 里查到的真实版本）
+# 装法：python -m pip install -r requirements.txt
+# 下面这行让 pip 去 PyTorch 官方 CUDA 源找 torch/torchvision，别删
+--extra-index-url https://download.pytorch.org/whl/cu121
+# 装完必须验：python -c "import torch;print(torch.cuda.is_available())"  →  必须 True
+# 若打印 False，说明装成了 CPU 版，重装：
+#   python -m pip install --force-reinstall torch==2.5.1+cu121 torchvision==0.20.1+cu121 --index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+ultralytics==8.4.203
+opencv-python==5.0.0.93
+numpy==2.4.6
+PySide6==6.12.0
+pillow==13.0.0
+PyYAML==6.0.3
+# ONNXRuntime 用 GPU 版；只用 CPU 的话改成 onnxruntime==1.31.1
+onnxruntime-gpu==1.31.1
+# 只在验证 ONNX 导出时需要
+onnx==1.23.2
