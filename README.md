@@ -7,7 +7,9 @@
 - 环境：Windows + Python 3.11 + PyTorch 2.5.1(cu121) + Ultralytics 8.4.203 + PySide6 6.12
 - 说明：本仓库是**公开数据集上的流程验证**，不是产线交付系统；相机分支未在真机上验证。
 
-> 仓库只保留程序、训练/评估/验证脚本、结果与截图；`datasets/`、`runs/`、`weights/` 为本地生成，不随仓库提交。权重（`best.pt`=s、`best_v8n.pt`=n）见 Releases（sha256:656ce0b49aaab282d49e2b247415a906673c57e443cce8a798484213d4aae461、sha256:25344b3b1e5e870720a03722801f0409b2d497c0a668a22fd9700a2ba1d10e76）。
+> 仓库只保留程序、训练/评估/验证脚本、结果与截图；`datasets/`、`runs/`、`weights/` 为本地生成，不随仓库提交。权重见 [Releases v1.0](https://github.com/yz15903/bearing-defect-detect/releases/tag/v1.0)：[best.pt](https://github.com/yz15903/bearing-defect-detect/releases/download/v1.0/best.pt)（YOLOv8s）、[best_v8n.pt](https://github.com/yz15903/bearing-defect-detect/releases/download/v1.0/best_v8n.pt)（YOLOv8n）。
+>
+> 代码使用 MIT 许可；数据集 APDDD 遵循其原始许可。
 
 ## 结果速览
 
@@ -32,7 +34,7 @@
 | `run_app.bat` | Windows 启动脚本（先在 Anaconda Prompt 里 `conda activate bearing`） |
 | `docs/` | 截图、指标 JSON、`results.csv`、`badcase.csv`（面试官会看的部分） |
 | `samples/` | 4 张示例图，不下载完整数据集也能跑演示 |
-| `weights/` | 本地权重（`best.pt`=s、`best_v8n.pt`=n），不提交；见 Releases |
+| `weights/` | 本地权重（`best.pt`=s、`best_v8n.pt`=n），不提交；见 [Releases v1.0](https://github.com/yz15903/bearing-defect-detect/releases/tag/v1.0) |
 | `runs/detect/apdd_n`、`apdd_s` | 本地训练产物（`results.csv`、曲线、`metrics_summary.json`），不提交 |
 | `datasets/apdd/` | 本地数据集（images/labels + `data.yaml`），不提交 |
 | `验证_*.py` | 8 个自查脚本：权重、指标、判定、耗时、badcase、ONNX、安全、冒烟 |
@@ -79,7 +81,7 @@ python app\main.py
 
 > 注意：显卡在空闲约 0.1–0.2 秒后会降频；实测**人为等到 0.2 秒时推理掉到 68 ms**。所以文件夹模式**不限速（sleep=0）**，不要为了“稳”去加 sleep——加了反而更慢（0.1 s → 70 ms，0.02 s → 30 ms）。
 
-## 4. 训练 / 评估
+## 4. 训练 / 评估（能复现指标才叫真做过）
 
 训练（两条命令对应 n 与 s，超参在 `_train_apdd.py` / `_train_apdd_s.py` 里）：
 
@@ -104,11 +106,13 @@ python _eval_run.py apdd_n
 
 - 这组 P/R 是「最佳 F1 置信度」下的整体指标；
 - **部署阈值 conf=0.25 下**重算是 n：P 0.673 / R 0.434、s：P 0.569 / R 0.469（跑 `验证_2_指标.py` 得到）；
+- 两个口径不能混着说，简历写 mAP、面试问上线漏检就答部署点 R。
 
-**best.pt 是哪一轮**：ultralytics 8.4.203 的 `fitness` 权重是 `[0, 0, 0, 1]`，只按 mAP50-95 存 best。
+**best.pt 是哪一轮**（被问到必答）：ultralytics 8.4.203 的 `fitness` 权重是 `[0, 0, 0, 1]`，只按 mAP50-95 存 best。
 - n：mAP50 最高在第 35 轮（0.58649），但第 30 轮 mAP50-95 更高（0.33489 vs 0.33237），所以 `best_v8n.pt` 是第 30 轮；
 - s：mAP50 最高在第 48 轮（0.62861），但第 46 轮 mAP50-95 更高（0.36027 vs 0.35027），所以 `best.pt` 是第 46 轮（权重里记录的 fitness = 0.36027）。
 
+问「为什么 mAP50 最高的那一轮不是 best」→ 答「因为保存 best 看的是 mAP50-95，不看 mAP50」。这个口径要能当场打开 `results.csv` 指着说。
 
 数据集重建（需要先下原始数据）：
 
@@ -126,12 +130,18 @@ python 验证_6_ONNX.py
 
 产出 `weights/best.onnx`（42.7 MB，opset 12，1×3×640×640 → 1×14×8400）；与 PyTorch 原始输出对拍：最大差 0.0041、均值 1.5e-5、置信度>0.25 的候选框数量一致（10 vs 10），属 float32 在 GPU 与 CPU 上的正常漂移。
 
-## 5. 判定逻辑
+## 5. 判定逻辑（业务部分，面试最爱问）
 
 1. 置信度 0.25 只做过滤，不参与判定；
 2. 端面面积：霍夫圆拟合（缩到长边 360 再找圆），拟合失败按图像面积 62% 兜底；
 3. NG 条件为「或」：缺陷框面积和 / 端面面积 ≥ Ta（默认 1.0%），或任一框置信度 ≥ Tc（默认 0.60）；
 4. 结果写 SQLite，NG 帧另存标注图。
+
+已知实情（不要粉饰）：
+- 霍夫圆在测试集 189 张里只成功 3 张，其余全走 62% 兜底，所以「端面面积」实际接近常数；
+- 面积比中位 19%（s），还有超过 100% 的（框面积相加、框会重叠），不是严格物理占比；
+- Tc 单独只多抓 1 张，所以别说「两个阈值互补」，说「两道门槛，以面积为主」；
+- Ta / Tc 都是初始值，没用真实产线数据标定过。
 
 ## 6. 自查脚本
 
@@ -147,7 +157,7 @@ python 验证_6_ONNX.py
 | `验证_7_安全检查.py` | 手机号 / 邮箱 / 密钥 / 绝对路径 / 大文件残留 | 5 秒 |
 | `验证_8_冒烟训练.py` | 120 张、1 epoch、seed 0，证明训练链路能跑 | 1 分钟 |
 
-## 7. 明确的限制
+## 7. 明确的限制（写论文、答辩都要主动说）
 
 1. 测试集**没有正常件**（三个划分空标注都是 0），只能测漏检，测不了过杀；
 2. 划分有字节级重复：test∩train 11 张、test∩val 2 张、val∩train 16 张，指标偏乐观；
@@ -163,4 +173,10 @@ python 验证_6_ONNX.py
 - 误检最多：`cahua` 36、`budaodian` 26、`zangdian` 15；
 - 最差单图：`img3260.jpg` 人工标 10 个只检出 3 个；`img1142.jpg`、`img1168.jpg` 3 个 `qikeng` 全部漏掉。
 
-明细在 `runs/badcase/badcase.csv`，可视化是 `runs/badcase/worst_*.jpg`（绿框=人工标注，红框=模型预测）。
+明细在 `runs/badcase/badcase.csv`，可视化是 `runs/badcase/worst_*.jpg`（绿框=人工标注，红框=模型预测）。这张表就是答辩时"你项目有什么不足"的答案，不要背"效果良好"。
+
+## 9. 答辩时的三句实话
+
+- 「底层网络我没改，我做的是应用层：数据、训练对比、判定规则、界面和落盘。」
+- 「面积占比不是物理面积，端面面积大部分是兜底估计，这是这套流程目前的短板。」
+- 「公开集只证明流程能跑通，要证明能上产线，得用自采的轴承端面数据重训一遍。」

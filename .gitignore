@@ -10,6 +10,7 @@ runs_backup_*/
 启动检测系统.bat
 
 # 个人/内部文件
+~$*
 internal/
 review_pack/
 easy/
